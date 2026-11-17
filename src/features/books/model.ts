@@ -15,7 +15,7 @@ export function validateBook(fields: BookFields): FieldErrors {
   if (!positive(fields.totalPages)) errors.totalPages = 'Enter a whole number of pages greater than zero (up to 2,147,483,647).';
   if (!positive(fields.dailyTarget)) errors.dailyTarget = 'Enter a whole daily target greater than zero (up to 2,147,483,647).';
   if (!/^\d+$/.test(fields.currentPage.trim()) || !Number.isSafeInteger(Number(fields.currentPage)) || Number(fields.currentPage) > Number(fields.totalPages)) errors.currentPage = 'Enter a whole current page between 0 and the total pages.';
-  if (!(fields.status in statusLabels)) errors.status = 'Choose a reading status.';
+  if (!(Object.hasOwn(statusLabels, fields.status))) errors.status = 'Choose a reading status.';
   if (fields.status === 'completed' && Number(fields.currentPage) !== Number(fields.totalPages)) errors.status = 'Completed books must be at the final page. Correct the current page or choose another status.';
   return errors;
 }

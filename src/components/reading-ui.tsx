@@ -8,15 +8,15 @@ export function Copy({ style, ...props }: TextProps) {
 }
 export function Screen({ children }: PropsWithChildren) {
   return <SafeAreaView style={ui.screen} edges={['top', 'left', 'right']}>
-    <ScrollView contentContainerStyle={ui.content}>{children}</ScrollView>
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={ui.content}>{children}</ScrollView>
   </SafeAreaView>;
 }
 export function Card({ style, ...props }: ViewProps) {
   return <View {...props} style={[ui.card, style]} />;
 }
-export function Button({ label, onPress, secondary = false }: { label: string; onPress: () => void; secondary?: boolean }) {
-  return <Pressable accessibilityRole="button" onPress={onPress}
-    style={({ pressed }) => [ui.button, secondary && ui.secondary, pressed && { opacity: 0.75 }]}>
+export function Button({ label, onPress, secondary = false, disabled = false }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
+    style={({ pressed }) => [ui.button, secondary && ui.secondary, (pressed || disabled) && { opacity: 0.55 }]}>
     <Copy style={[ui.buttonLabel, secondary && { color: c.green }]}>{label}</Copy>
   </Pressable>;
 }
