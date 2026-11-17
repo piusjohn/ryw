@@ -38,7 +38,7 @@ function adapter(raw) {
     async getFirstAsync(sql) { return raw.prepare(sql).get() ?? null; },
     async getAllAsync(sql) { return raw.prepare(sql).all().map(row => ({ ...row })); },
     async execAsync(sql) { raw.exec(sql); },
-    async runAsync(sql, ...params) { return raw.prepare(sql).run(...params); },
+    async runAsync(sql, ...params) { const result = raw.prepare(sql).run(...params); return { lastInsertRowId: Number(result.lastInsertRowid), changes: Number(result.changes) }; },
     async withTransactionAsync(task) {
       raw.exec('BEGIN');
       try { await task(); raw.exec('COMMIT'); }
