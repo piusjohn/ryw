@@ -17,7 +17,15 @@ export function BooksProvider({ children }: PropsWithChildren) {
     catch { setError('We couldn’t open your local library. Your saved books have not been removed. Please try again.'); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { void reload(); }, [reload]);
+  useEffect(() => {
+    let active = true;
+    void database().then(listBooks).then(rows => {
+      if (active) { setBooks(rows); setError(null); }
+    }).catch(() => {
+      if (active) setError('We couldn’t open your local library. Your saved books have not been removed. Please try again.');
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
   const save = async (draft: BookDraft, id?: number, pickedUri?: string | null) => {
     if (saving.current) throw new Error('A book is already being saved. Please try again.');
     saving.current = true;
