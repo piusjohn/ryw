@@ -1,56 +1,36 @@
-# Welcome to your Expo app 👋
+# Reading Accountability
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Phase 1 of a mobile-first Expo SDK 58 / React Native app, using TypeScript and Expo Router.
 
-## Get started
+## Run
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+npm ci
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Open in a compatible Expo Go installation or Android/iOS development environment. Use `npx expo start --offline --lan` to develop without internet once dependencies and required development assets are loaded. Keep the device and Metro server on the same local network.
 
-### Other setup steps
+## Phase 1
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- Five bottom tabs: Home, Library, Groups, Leaderboard, Profile.
+- Home dashboard with sample statistics, daily goal, current book progress, and weekly activity.
+- Log Reading opens an explicitly labeled preview; it does not record or save sessions.
+- Remaining tabs are placeholders for future phases.
+- Shared design tokens in `src/constants/design.ts`, reusable UI in `src/components/reading-ui.tsx`, and typed mock data in `src/data/dashboard.ts`.
+- System fonts, native-view illustrations, and bundled mock data; no remote images, font downloads, API requests, authentication, or cloud services.
+- SQLite and persistent reading logs are deferred until a phase that needs data entry and storage.
 
-## Learn more
+## Verify
 
-To learn more about developing your project with Expo, look at the following resources:
+```sh
+npm run typecheck
+npm run lint
+npx expo export --platform android
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+On a device, open all five tabs, follow My library and the profile avatar, and open/dismiss Log Reading (including Android back). Try a small display and larger system text; scroll to the bottom and verify content stays clear of navigation.
 
-## Join the community
+For an offline smoke test, load the app and its assets, disconnect internet while keeping the local Metro connection available, then navigate through every tab and open the preview. The UI requires no network services. Expo Go/development reloads may still need Metro; a fully disconnected cold-launch test requires an installed release build with its JavaScript and assets bundled. Build that in a later deployment step, then force-stop and reopen in airplane mode. Web offline reloads are not supported by a service worker in Phase 1.
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+No device runtime or airplane-mode test is implied by a successful bundle export.
