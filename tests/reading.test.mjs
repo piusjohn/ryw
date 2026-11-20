@@ -47,3 +47,20 @@ test('streak counts successful dates once and breaks after a missed day', () => 
   assert.equal(streak(logs, goals, '2026-02-02'), 2); assert.equal(streak(logs, goals, '2026-02-03'), 2); assert.equal(streak(logs, goals, '2026-02-04'), 0);
   assert.match(validateRange(5, 12, 100, logs), /overlap/i); assert.equal(validateRange(30, 35, 100, logs), null);
 });
+test('outbox and stable identities are durable and rollback with local writes', async () => {
+  const folder = mkdtempSync(join(tmpdir(), 'reading-outbox-')); const path = join(folder, 'reading.db'); let raw = new DatabaseSync(path);
+  try {
+    let db = adapter(raw); await migrate(db);
+    const id = await saveBook(db, { title: 'Queued book', author: '', totalPages: 100, currentPage: 0, dailyTarget: 10, status: 'reading', cover: null });
+    const identity = raw.prepare("SELECT cloud_id, owner_id FROM sync_identity WHERE entity='books' AND local_key=?").get(String(id));
+    assert.match(identity.cloud_id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/); assert.equal(identity.owner_id, null);
+    const book = (await listBooks(db))[0]; await saveLog(db, book, { startPage: 0, endPage: 10, readingDate: '2026-01-01', reflection: '' });
+    assert.equal(raw.prepare("SELECT count(*) AS n FROM sync_outbox WHERE entity IN ('reading_logs','daily_goals')").get().n, 2);
+    await assert.rejects(db.withTransactionAsync(async () => { await db.runAsync("UPDATE books SET title='Should roll back' WHERE id=?", id); throw new Error('rollback'); }));
+    const queued = raw.prepare("SELECT generation FROM sync_outbox WHERE entity='books' AND local_key=?").get(String(id)).generation;
+    raw.close(); raw = new DatabaseSync(path); db = adapter(raw); await migrate(db);
+    assert.equal(raw.prepare("SELECT cloud_id FROM sync_identity WHERE entity='books' AND local_key=?").get(String(id)).cloud_id, identity.cloud_id);
+    assert.equal(raw.prepare("SELECT generation FROM sync_outbox WHERE entity='books' AND local_key=?").get(String(id)).generation, queued);
+    assert.equal((await listBooks(db))[0].title, 'Queued book');
+  } finally { raw.close(); rmSync(folder, { recursive: true, force: true }); }
+});
