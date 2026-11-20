@@ -12,7 +12,7 @@ export function BooksProvider({ children }: PropsWithChildren) {
   const [error, setError] = useState<string | null>(null);
   const saving = useRef(false);
   const reload = useCallback(async () => {
-    setLoading(true); setError(null);
+    setError(null);
     try { setBooks(await listBooks(await database())); }
     catch { setError('We couldn’t open your local library. Your saved books have not been removed. Please try again.'); }
     finally { setLoading(false); }

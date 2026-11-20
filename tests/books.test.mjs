@@ -53,7 +53,7 @@ test('SQLite migrations, add/edit, bound SQL, and persistence after closing and 
   try {
     let db = adapter(raw);
     await migrate(db); await migrate(db);
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 1);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3);
     const draft = toDraft({ ...fields, title: "Reader's book'); DROP TABLE books;--" }, 'cover.jpg');
     const id = await saveBook(db, draft);
     await saveBook(db, { ...draft, dailyTarget: 10, status: 'planned' }, id);

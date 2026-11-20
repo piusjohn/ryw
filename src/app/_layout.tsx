@@ -7,6 +7,7 @@ export default function RootLayout() {
     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     <Stack.Screen name="books/new" options={{ title: 'Add book' }} />
     <Stack.Screen name="books/[id]" options={{ title: 'Book details' }} />
+    <Stack.Screen name="reading/[id]" options={{ title: 'Reading session' }} />
     <Stack.Screen name="books/edit" options={{ title: 'Edit book' }} />
   </Stack></BooksProvider>;
 }
