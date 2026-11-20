@@ -10,7 +10,7 @@ const tabs = [
   { name: 'profile', title: 'Profile', icon: '◎' },
 ];
 export default function AppTabs() {
-  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: c.orange,
+  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: c.accent,
     tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.line },
     tabBarLabelStyle: { fontSize: 10, fontWeight: '600' }, tabBarHideOnKeyboard: true }}>
     {tabs.map(tab => <Tabs.Screen key={tab.name} name={tab.name} options={{ title: tab.title,
