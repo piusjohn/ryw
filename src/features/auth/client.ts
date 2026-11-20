@@ -19,9 +19,11 @@ const storage = {
   async setItem(name: string, value: string) {
     if (Platform.OS === 'web') { if (typeof window !== 'undefined') window.localStorage.setItem(name, value); return; }
     // A failed write removes the count first so a partial session is never loaded.
+    const previousCount = Math.min(Number(await SecureStore.getItemAsync(`${name}.count`)) || 0, 100);
     await SecureStore.deleteItemAsync(`${name}.count`);
     const chunks = value.match(/[\s\S]{1,1000}/g) ?? [''];
     for (let i = 0; i < chunks.length; i++) await SecureStore.setItemAsync(`${name}.${i}`, chunks[i]);
+    for (let i = chunks.length; i < previousCount; i++) await SecureStore.deleteItemAsync(`${name}.${i}`);
     await SecureStore.setItemAsync(`${name}.count`, String(chunks.length));
   },
   async removeItem(name: string) {

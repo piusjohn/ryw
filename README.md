@@ -50,3 +50,11 @@ Tests require Node 22.18+ with built-in TypeScript stripping and `node:sqlite` (
 8. Force-stop and reopen in airplane mode. Confirm books, covers, status, and goals remain. Check Android back navigation, all five tabs, larger system text, the keyboard, and a small display.
 
 Device photo selection, process restart, and airplane-mode tests must be performed on a device; passing host tests or bundle exports does not imply those have run.
+
+### Phase 4 work in progress
+
+Account sign-in requires a Supabase project: copy `.env.example` to `.env` and set the public project URL and publishable key. Never place a service-role or secret key in the app. Email confirmation and password recovery depend on the Supabase Auth project settings. Recovery links need a configured destination that lets the user set a new password; an in-app recovery flow has not been implemented.
+
+The cloud schema in `supabase/migrations/20261120000100_reading_backup.sql` is an **unverified preparation**, not a deployed or production-ready sync backend. Do not deploy it as a complete backup solution: conditional writes, a commit-safe incremental change feed, conflict review, account isolation on the device, restore, and the synchronization worker remain to be implemented and tested. In particular, sequence values alone cannot serve as a reliable incremental cursor when transactions commit out of order.
+
+SQLite remains the only active store for reading data. The local outbox assigns UUIDs and queues changes in the same transaction; no data is uploaded, and signing in does not associate or back up the local library. Existing local libraries remain available without signing in. Cloud RLS and end-to-end authentication require a separate Supabase test project for integration testing.
