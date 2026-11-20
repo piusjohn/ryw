@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
 import { Button, Card, Copy, Screen, ui } from '@/components/reading-ui';
 import { palette as c } from '@/constants/design';
@@ -18,6 +19,8 @@ export function BookForm({ book }: { book?: Book }) {
   const [picking, setPicking] = useState(false);
   const [pickedUri, setPickedUri] = useState<string | null>(null);
   const [cover, setCover] = useState(book?.cover ?? null);
+  const [pdf, setPdf] = useState(book?.pdf ?? null);
+  const [pickedPdf, setPickedPdf] = useState<{ uri: string; name: string } | null>(null);
   const locked = useRef(false);
   const change = (key: keyof BookFields, value: string) => { setFields(old => ({ ...old, [key]: value })); setErrors(old => ({ ...old, [key]: undefined })); };
   const pick = async () => {
@@ -28,16 +31,29 @@ export function BookForm({ book }: { book?: Book }) {
     } catch { setFailure('We couldn’t open that photo. Please choose a locally available image and try again. You can also save without a cover.'); }
     finally { setPicking(false); }
   };
+  const pickPdf = async () => {
+    setPicking(true); setFailure(null);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      if (!result.canceled) {
+        const file = result.assets[0];
+        if (!file.name.toLowerCase().endsWith('.pdf') && file.mimeType !== 'application/pdf') throw new Error('Please choose a PDF file.');
+        setPickedPdf({ uri: file.uri, name: file.name });
+        setFields(old => ({ ...old, title: old.title || file.name.replace(/\.pdf$/i, '') }));
+      }
+    } catch (error) { setFailure(error instanceof Error ? error.message : 'Could not open this PDF. Please try again.'); }
+    finally { setPicking(false); }
+  };
   const submit = async () => {
     if (locked.current) return;
     const issues = validateBook(fields); setErrors(issues); setFailure(null);
     if (Object.keys(issues).length) { setFailure('Please check the highlighted fields below.'); return; }
     locked.current = true; setBusy(true);
     try {
-      const id = await save(toDraft(fields, cover), book?.id, pickedUri);
+      const id = await save({ ...toDraft(fields, cover), pdf }, book?.id, pickedUri, pickedPdf?.uri);
       if (book) router.back();
       else router.replace({ pathname: '/books/[id]', params: { id } });
-    } catch { setFailure('Your changes couldn’t be saved. Check available device storage and try again. Your form is still here.'); }
+    } catch (error) { setFailure(error instanceof Error ? error.message : 'Your changes couldn’t be saved. Check available device storage and try again.'); }
     finally { locked.current = false; setBusy(false); }
   };
   const input = (key: Exclude<keyof BookFields, 'status'>, label: string, numeric = false, hint?: string) => <View style={{ gap: 6 }}>
@@ -53,6 +69,7 @@ export function BookForm({ book }: { book?: Book }) {
     <Copy style={ui.title}>{book ? 'Edit your book' : 'A new chapter'}</Copy>
     <Copy style={ui.muted}>Give your reading a little direction. Fields marked * are required.</Copy>
     {failure && <Card><Copy accessibilityRole="alert" style={{ color: '#A13C33' }}>{failure}</Copy></Card>}
+    <Card><Copy style={ui.heading}>PDF book (optional)</Copy><Copy style={ui.muted}>Choose a PDF to keep a copy on this device. Enter the page count below.</Copy>{(pickedPdf || pdf) && <Copy>{pickedPdf?.name ?? 'PDF attached'}</Copy>}<Button disabled={busy || picking} secondary label={pickedPdf || pdf ? 'Change PDF' : 'Choose PDF'} onPress={() => void pickPdf()} />{(pickedPdf || pdf) && <Button disabled={busy || picking} secondary label="Remove PDF" onPress={() => { setPickedPdf(null); setPdf(null); }} />}</Card>
     {input('title', 'Book title *')}{input('author', 'Author (optional)')}{input('totalPages', 'Total pages *', true)}
     {input('currentPage', 'Current page *', true, 'Your existing position, not a reading log. Changing this does not count toward daily reading.')}
     {input('dailyTarget', 'Daily page target *', true, 'A plan for each day. Setting a goal does not mark pages as read.')}
@@ -62,7 +79,7 @@ export function BookForm({ book }: { book?: Book }) {
     {errors.status && <Copy accessibilityRole="alert" style={{ color: '#A13C33' }}>{errors.status}</Copy>}
     <Copy style={ui.heading}>Book cover (optional)</Copy>
     {uri && <Image source={{ uri }} contentFit="cover" accessibilityLabel="Selected book cover" style={{ width: 100, height: 150, borderRadius: 8 }} />}
-    <Button disabled={busy || picking} secondary label={picking ? 'Opening photos…' : 'Choose from device'} onPress={() => void pick()} />
+    <Button disabled={busy || picking} secondary label={picking ? 'Opening photos…' : 'Choose cover image'} onPress={() => void pick()} />
     {(uri !== null) && <Button disabled={busy || picking} secondary label="Remove cover" onPress={() => { setCover(null); setPickedUri(null); }} />}
     <Button disabled={busy || picking} label={busy ? 'Saving…' : book ? 'Save changes' : 'Add book'} onPress={() => void submit()} />
     <Button disabled={busy} secondary label="Cancel" onPress={() => router.back()} />

@@ -16,7 +16,7 @@ export function Card({ style, ...props }: ViewProps) {
 }
 export function Button({ label, onPress, secondary = false, disabled = false }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
-    style={({ pressed }) => [ui.button, secondary && ui.secondary, (pressed || disabled) && { opacity: 0.55 }]}>
+    style={({ pressed }) => [ui.button, secondary && ui.secondary, pressed && !disabled && { transform: [{ translateY: 3 }], borderBottomWidth: 1 }, disabled && { opacity: 0.5 }]}>
     <Copy style={[ui.buttonLabel, secondary && { color: c.accent }]}>{label}</Copy>
   </Pressable>;
 }
@@ -53,12 +53,12 @@ export const ui = StyleSheet.create({
   heading: { fontSize: 19, lineHeight: 26, fontWeight: '700', letterSpacing: -0.3 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.accent },
   muted: { color: c.muted },
-  card: { backgroundColor: c.surface, borderRadius: radius.card, padding: 20, borderWidth: 1, borderColor: c.line, gap: space.md },
+  card: { backgroundColor: c.surface, borderRadius: radius.card, padding: 20, borderWidth: 2, borderBottomWidth: 4, borderColor: c.line, gap: space.md },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  button: { backgroundColor: c.lemon, borderRadius: radius.control, minHeight: 56, padding: 16, alignItems: 'center', justifyContent: 'center' },
-  secondary: { backgroundColor: c.softGreen }, buttonLabel: { color: c.ink, fontWeight: '700', fontSize: 16 },
-  track: { height: 8, borderRadius: 4, backgroundColor: c.softGreen, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 4, backgroundColor: c.accent },
+  button: { backgroundColor: c.lemon, borderRadius: radius.control, borderBottomWidth: 4, borderBottomColor: '#45A500', minHeight: 56, padding: 14, alignItems: 'center', justifyContent: 'center' },
+  secondary: { backgroundColor: c.surface, borderWidth: 2, borderBottomWidth: 4, borderColor: c.line }, buttonLabel: { color: c.ink, fontWeight: '700', fontSize: 16 },
+  track: { height: 14, borderRadius: 7, backgroundColor: c.line, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 7, backgroundColor: c.lemon },
   badge: { color: c.accent, backgroundColor: c.softGreen, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, fontSize: 12, fontWeight: '600' },
   cover: { width: 96, minHeight: 142, backgroundColor: c.softGreen, borderRadius: 6, borderLeftWidth: 5, borderLeftColor: c.lemon, padding: 10, justifyContent: 'space-between', gap: 10 },
   coverSmall: { fontSize: 7, lineHeight: 10, letterSpacing: 0.5, color: c.muted, fontWeight: '600' },

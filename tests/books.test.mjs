@@ -53,14 +53,14 @@ test('SQLite migrations, add/edit, bound SQL, and persistence after closing and 
   try {
     let db = adapter(raw);
     await migrate(db); await migrate(db);
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3);
-    const draft = toDraft({ ...fields, title: "Reader's book'); DROP TABLE books;--" }, 'cover.jpg');
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 4);
+    const draft = { ...toDraft({ ...fields, title: "Reader's book'); DROP TABLE books;--" }, 'cover.jpg'), pdf: 'saved-book.pdf' };
     const id = await saveBook(db, draft);
     await saveBook(db, { ...draft, dailyTarget: 10, status: 'planned' }, id);
     raw.close(); raw = new DatabaseSync(path); db = adapter(raw); await migrate(db);
     const [book] = await listBooks(db);
     assert.equal(book.title, draft.title); assert.equal(book.currentPage, 0);
-    assert.equal(book.dailyTarget, 10); assert.equal(book.status, 'planned'); assert.equal(book.cover, 'cover.jpg');
+    assert.equal(book.dailyTarget, 10); assert.equal(book.status, 'planned'); assert.equal(book.cover, 'cover.jpg'); assert.equal(book.pdf, 'saved-book.pdf');
     await saveBook(db, { ...book, currentPage: 101, status: 'completed' }, id);
     assert.equal((await listBooks(db))[0].status, 'completed');
     await assert.rejects(saveBook(db, { ...draft, dailyTarget: 0 }));

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { router } from 'expo-router';
+import { openPdf } from '@/storage/pdfs';
 import { Button, Card, Copy, Screen, ui } from '@/components/reading-ui';
 import { BookCard } from '@/features/books/book-card';
 import { LibraryState } from '@/features/books/library-state';
@@ -7,10 +9,13 @@ import { useReading } from '@/features/reading/use-reading';
 import { pages } from '@/features/reading/model';
 export default function BookDetailsScreen() {
   const { book, loading, error } = useSelectedBook();
+  const [pdfError, setPdfError] = useState('');
   const { logs } = useReading();
   if (loading || error) return <LibraryState />;
   if (!book) return <Screen><Copy>Book not found.</Copy><Button label="Open library" onPress={() => router.replace('/library')} /></Screen>;
   return <Screen><Copy style={ui.eyebrow}>YOUR READING JOURNEY</Copy><BookCard book={book} details />
+    {!!book.pdf && <Button label="Open PDF" secondary onPress={() => { setPdfError(''); void openPdf(book.pdf!).catch(error => setPdfError(error instanceof Error ? error.message : 'Could not open this PDF.')); }} />}
+    {!!pdfError && <Copy accessibilityRole="alert">{pdfError}</Copy>}
     <Button label="Start Reading" onPress={() => router.push({ pathname: '/reading/[id]', params: { id: book.id } })} />
     <Button label="Log Reading & view history" secondary onPress={() => router.push({ pathname: '/reading/[id]', params: { id: book.id } })} />
     <Button label="Edit book & daily goal" onPress={() => router.push({ pathname: '/books/edit', params: { id: book.id } })} />

@@ -2,7 +2,7 @@ export const statusLabels = { reading: 'Currently Reading', completed: 'Complete
 export type BookStatus = keyof typeof statusLabels;
 export type Book = {
   id: number; title: string; author: string; totalPages: number; currentPage: number;
-  dailyTarget: number; status: BookStatus; cover: string | null;
+  dailyTarget: number; status: BookStatus; cover: string | null; pdf?: string | null;
 };
 export type BookDraft = Omit<Book, 'id'>;
 export type BookFields = { title: string; author: string; totalPages: string; currentPage: string; dailyTarget: string; status: BookStatus };

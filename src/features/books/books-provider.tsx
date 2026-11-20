@@ -3,8 +3,9 @@ import type { Book, BookDraft } from './model';
 import { database } from '@/storage/database';
 import { listBooks, saveBook } from '@/storage/repository';
 import { removeCover, storeCover } from '@/storage/covers';
+import { removePdf, storePdf } from '@/storage/pdfs';
 
-type BooksContextValue = { books: Book[]; loading: boolean; error: string | null; reload: () => Promise<void>; save: (draft: BookDraft, id?: number, pickedUri?: string | null) => Promise<number> };
+type BooksContextValue = { books: Book[]; loading: boolean; error: string | null; reload: () => Promise<void>; save: (draft: BookDraft, id?: number, pickedUri?: string | null, pickedPdf?: string | null) => Promise<number> };
 const BooksContext = createContext<BooksContextValue | null>(null);
 export function BooksProvider({ children }: PropsWithChildren) {
   const [books, setBooks] = useState<Book[]>([]);
@@ -26,21 +27,24 @@ export function BooksProvider({ children }: PropsWithChildren) {
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
-  const save = async (draft: BookDraft, id?: number, pickedUri?: string | null) => {
+  const save = async (draft: BookDraft, id?: number, pickedUri?: string | null, pickedPdf?: string | null) => {
     if (saving.current) throw new Error('A book is already being saved. Please try again.');
     saving.current = true;
-    let copied: string | null = null;
+    let copied: string | null = null; let copiedPdf: string | null = null;
     try {
       const db = await database();
       if (pickedUri) copied = await storeCover(pickedUri);
-      const saved = { ...draft, cover: copied ?? draft.cover };
+      if (pickedPdf) { try { copiedPdf = await storePdf(pickedPdf); } catch (error) { if (copied) await removeCover(copied).catch(() => {}); throw error; } }
+      const saved = { ...draft, cover: copied ?? draft.cover, pdf: copiedPdf ?? draft.pdf ?? null };
       let savedId: number;
       try { savedId = await saveBook(db, saved, id); }
-      catch (error) { if (copied) await removeCover(copied).catch(() => {}); throw error; }
+      catch (error) { if (copied) await removeCover(copied).catch(() => {}); if (copiedPdf) await removePdf(copiedPdf).catch(() => {}); throw error; }
       // Update local state after the committed write. Navigation never depends on a second query.
       setBooks(previous => [{ ...saved, id: savedId }, ...previous.filter(book => book.id !== savedId)]);
       const old = books.find(book => book.id === id)?.cover;
       if (old && old !== saved.cover) await removeCover(old).catch(() => {});
+      const oldPdf = books.find(book => book.id === id)?.pdf;
+      if (oldPdf && oldPdf !== saved.pdf) await removePdf(oldPdf).catch(() => {});
       return savedId;
     } finally { saving.current = false; }
   };

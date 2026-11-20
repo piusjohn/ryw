@@ -55,6 +55,7 @@ export const migrations = [
   ${syncTriggers('reading_logs', 'NEW.id')}
   ${syncTriggers('daily_goals', "CAST(NEW.bookId AS TEXT) || ':' || NEW.readingDate")}
   ${syncTriggers('reading_reports', 'NEW.id')}`,
+  `ALTER TABLE books ADD COLUMN pdf TEXT;`,
 ];
 export interface MigrationDatabase {
   getFirstAsync<T>(sql: string): Promise<T | null>;
